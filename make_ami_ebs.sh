@@ -26,42 +26,42 @@
 #export PATH=$PATH:$EC2_HOME/bin
 #export JAVA_HOME=/usr
 
-# Run the following to find the kernel image to use, and pick the unpartitioned one with the desired architecture:
-# ec2-describe-images --owner amazon --region us-west-2 | grep "amazon\/pv-grub-hd0"
+# Run the following to find the kernel image to use, and pick the one with the desired architecture:
+# ec2-describe-images --owner amazon --region us-west-2 | grep "amazon\/pv-grub-hd00"
 ##############################
 
 AMI_NAME=ScientificLinux-6.4-x86_64-base
 KERNEL_ID=aki-f837bac8
 
-mkdir -p ~/ec2/{tools,certificates,images,yum,mnt,repos}
-
-# Install prerequisites
-sudo yum update
-sudo yum install epel-release java-1.6.0-openjdk unzip python-imgcreate
-
-# Download and install EC2 Command Line Tools
-curl -o /tmp/ec2-api-tools.zip http://s3.amazonaws.com/ec2-downloads/ec2-api-tools.zip
-curl -o /tmp/ec2-ami-tools.zip http://s3.amazonaws.com/ec2-downloads/ec2-ami-tools.zip
-unzip /tmp/ec2-api-tools.zip -d /tmp
-unzip /tmp/ec2-ami-tools.zip -d /tmp
-cp -r /tmp/ec2-api-tools-*/* ~/ec2/tools/
-cp -r /tmp/ec2-ami-tools-*/* ~/ec2/tools/
-
-# Create a local image of the OS
-./ami_creator/ami_creator.py -n ${AMI_NAME} -c ks-ScientificLinux64.cfg
+# mkdir -p ~/ec2/{tools,certificates,images,yum,mnt,repos}
+# 
+# # Install prerequisites
+# sudo yum update
+# sudo yum install epel-release java-1.6.0-openjdk unzip python-imgcreate
+# 
+# # Download and install EC2 Command Line Tools
+# curl -o /tmp/ec2-api-tools.zip http://s3.amazonaws.com/ec2-downloads/ec2-api-tools.zip
+# curl -o /tmp/ec2-ami-tools.zip http://s3.amazonaws.com/ec2-downloads/ec2-ami-tools.zip
+# unzip /tmp/ec2-api-tools.zip -d /tmp
+# unzip /tmp/ec2-ami-tools.zip -d /tmp
+# cp -r /tmp/ec2-api-tools-*/* ~/ec2/tools/
+# cp -r /tmp/ec2-ami-tools-*/* ~/ec2/tools/
+# 
+# # Create a local image of the OS
+# ./ami_creator/ami_creator.py -n ${AMI_NAME} -c ks-ScientificLinux64.cfg
 
 # Make an EBS volume to copy the image to
-ec2-create-volume -z us-west-2a -s 8
+# ec2-create-volume -z us-west-2a -s 8
 
 # Attach the volume
 # TODO: capture the output of the volume creation and get the current instance id for use here
-# VOLUME_ID=<volume-id>
-# INSTANCE_ID=<instance-id>
+VOLUME_ID=vol-204bf449
+INSTANCE_ID=i-fe049dc9
 # ec2-attach-volume ${VOLUME_ID} -i ${INSTANCE_ID} -d /dev/sdi
 
 # Make the device bootable
 # TODO: get the proper device id for use here
-# DEVICE_ID=<device-id>
+DEVICE_ID=xvdm
 # sfdisk /dev/${DEVICE_ID} << EOF
 # 0,,83,*
 # ;
@@ -77,4 +77,7 @@ ec2-create-volume -z us-west-2a -s 8
 
 # Create an EBS snapshot
 # ec2-create-snapshot -d ${AMI_NAME} ${VOLUME_ID}
-# ec2-register --block-device-mapping /dev/sda=${SNAPSHOT_ID}::true --name "${AMI_NAME} EBS-Backed" --description "${AMI_NAME} EBS Backed" --architecture x86_64 --kernel ${KERNEL_ID}
+SNAPSHOT_ID=snap-f2ec6fc8
+ec2-register --block-device-mapping /dev/sda=${SNAPSHOT_ID}::true --name "${AMI_NAME} EBS-Backed" --description "${AMI_NAME} EBS Backed" --architecture x86_64 --kernel ${KERNEL_ID}
+
+#TODO: delete the volume and snapshot?
