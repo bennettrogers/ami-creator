@@ -31,7 +31,7 @@
 # ec2-describe-images --owner amazon --region us-west-2 | grep "amazon\/pv-grub-hd0"
 ##############################
 
-AMI_NAME=ScientificLinux-6.4-x86_64-raw
+AMI_NAME=ScientificLinux-6.4-x86_64-raw-large
 KERNEL_ID=aki-fc37bacc
 
 # mkdir -p ~/ec2/{tools,certificates,images,yum,mnt,repos}
@@ -49,6 +49,7 @@ KERNEL_ID=aki-fc37bacc
 # cp -r /tmp/ec2-ami-tools-*/* ~/ec2/tools/
 #
 # # Create a local image of the OS
+# # TODO: edit the Kickstart file to specify the desired root volume size (max 10GB for instance-store AMIs)
 ./ami_creator/ami_creator.py -n ${AMI_NAME} -c ks-ScientificLinux64.cfg
 
 # Bundle the image
