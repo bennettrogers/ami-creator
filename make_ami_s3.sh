@@ -34,11 +34,11 @@ AMI_NAME=ScientificLinux-6.4-x86_64-raw
 KERNEL_ID=aki-f837bac8
 
 # mkdir -p ~/ec2/{tools,certificates,images,yum,mnt,repos}
-# 
+#
 # # Install prerequisites
 # sudo yum update
 # sudo yum install epel-release java-1.6.0-openjdk unzip python-imgcreate
-# 
+#
 # # Download and install EC2 Command Line Tools
 # curl -o /tmp/ec2-api-tools.zip http://s3.amazonaws.com/ec2-downloads/ec2-api-tools.zip
 # curl -o /tmp/ec2-ami-tools.zip http://s3.amazonaws.com/ec2-downloads/ec2-ami-tools.zip
@@ -46,38 +46,15 @@ KERNEL_ID=aki-f837bac8
 # unzip /tmp/ec2-ami-tools.zip -d /tmp
 # cp -r /tmp/ec2-api-tools-*/* ~/ec2/tools/
 # cp -r /tmp/ec2-ami-tools-*/* ~/ec2/tools/
-# 
+#
 # # Create a local image of the OS
-# ./ami_creator/ami_creator.py -n ${AMI_NAME} -c ks-ScientificLinux64.cfg
+./ami_creator/ami_creator.py -n ${AMI_NAME} -c ks-ScientificLinux64.cfg
 
-# Make an EBS volume to copy the image to
-# ec2-create-volume -z us-west-2a -s 8
+# Bundle the image
+# ec2-bundle-image --image ScientificLinux-6.4-x86_64-raw.img --cert ~/ec2/certificates/<your-cert>.pem --privatekey ~/ec2/certificates/<your-pk>.pem --user <your-AWS-account-number> --arch <desired-arch> --destination /tmp/amis
 
-# Attach the volume
-# TODO: capture the output of the volume creation and get the current instance id for use here
-VOLUME_ID=vol-204bf449
-INSTANCE_ID=i-fe049dc9
-# ec2-attach-volume ${VOLUME_ID} -i ${INSTANCE_ID} -d /dev/sdi
+# Upload the image
+# ec2-upload-bundle --access-key <access-key> --secret-key <access-secret> --bucket <AMI-bucket> --manifest /tmp/amis/AMI-name.img.manifest.xml
 
-# Make the device bootable
-# TODO: get the proper device id for use here
-DEVICE_ID=xvdm
-# sfdisk /dev/${DEVICE_ID} << EOF
-# 0,,83,*
-# ;
-# ;
-# ;
-# EOF
-
-# Copy the image to the EBS partition, clean it, and resize
-# dd if=${AMI_NAME}.img of=/dev/${DEVICE_ID}1 bs=8M
-# e2fsck -f /dev/${DEVICE_ID}1
-# resize2fs /dev/${DEVICE_ID}1
-# sync
-
-# Create an EBS snapshot
-# ec2-create-snapshot -d ${AMI_NAME} ${VOLUME_ID}
-SNAPSHOT_ID=snap-f2ec6fc8
-ec2-register --block-device-mapping /dev/sda=${SNAPSHOT_ID}::true --name "${AMI_NAME} EBS-Backed" --description "${AMI_NAME} EBS Backed" --architecture x86_64 --kernel ${KERNEL_ID}
-
-#TODO: delete the volume and snapshot?
+# Register the AMI
+# ec2-register --architecture <desired-arch> --description <ami-description> --name <ami-name> <AMI-bucket>/<AMI-name.img.manifest.xml>
