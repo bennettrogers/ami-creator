@@ -27,11 +27,12 @@
 #export JAVA_HOME=/usr
 
 # Run the following to find the kernel image to use, and pick the one with the desired architecture:
-# ec2-describe-images --owner amazon --region us-west-2 | grep "amazon\/pv-grub-hd00"
+# Note that hd0 kernels are for instance-store images, and hd00 kernels are for EBS-backed
+# ec2-describe-images --owner amazon --region us-west-2 | grep "amazon\/pv-grub-hd0"
 ##############################
 
 AMI_NAME=ScientificLinux-6.4-x86_64-raw
-KERNEL_ID=aki-f837bac8
+KERNEL_ID=aki-fc37bacc
 
 # mkdir -p ~/ec2/{tools,certificates,images,yum,mnt,repos}
 #
@@ -51,7 +52,7 @@ KERNEL_ID=aki-f837bac8
 ./ami_creator/ami_creator.py -n ${AMI_NAME} -c ks-ScientificLinux64.cfg
 
 # Bundle the image
-# ec2-bundle-image --image ScientificLinux-6.4-x86_64-raw.img --cert ~/ec2/certificates/<your-cert>.pem --privatekey ~/ec2/certificates/<your-pk>.pem --user <your-AWS-account-number> --arch <desired-arch> --destination /tmp/amis
+# ec2-bundle-image --image ScientificLinux-6.4-x86_64-raw.img --cert ~/ec2/certificates/<your-cert>.pem --privatekey ~/ec2/certificates/<your-pk>.pem --user <your-AWS-account-number> --arch <desired-arch> --kernel ${KERNEL_ID} --destination /tmp/amis
 
 # Upload the image
 # ec2-upload-bundle --access-key <access-key> --secret-key <access-secret> --bucket <AMI-bucket> --manifest /tmp/amis/AMI-name.img.manifest.xml

@@ -27,6 +27,7 @@
 #export JAVA_HOME=/usr
 
 # Run the following to find the kernel image to use, and pick the one with the desired architecture:
+# Note that hd0 kernels are for instance-store images, and hd00 kernels are for EBS-backed
 # ec2-describe-images --owner amazon --region us-west-2 | grep "amazon\/pv-grub-hd00"
 ##############################
 
